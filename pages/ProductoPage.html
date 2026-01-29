@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeStore - Coleccionables</title>
+    <style>
+        /* --- Reset y Variables --- */
+        :root {
+            --primary: #4a90e2;
+            --dark: #2c3e50;
+            --light: #f4f7f6;
+            --white: #ffffff;
+            --text: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Contenedores --- */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #totalProducto {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        #productosContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 350px;
+            height: 500px;
+            max-width: 1000px;
+        }
+
+        .producto {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 5px solid var(--primary);
+        }
+
+        .producto:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .producto h3 {
+            margin-top: 0;
+            color: var(--dark);
+            font-size: 1.4rem;
+        }
+
+        .producto p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .precio {
+            display: block;
+            margin-top: 15px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        /* Mensaje vacío */
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            background: #eee;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Mi Colección de Cartas</h1>
+        <p id="totalProducto">Cargando productos...</p>
+    </div>
+
+    <div id="productosContainer">
+        </div>
+
+        <script type="module">
+            import { Producto } from '../clases/Producto.js';
+        
+            const container = document.getElementById('productosContainer');
+            const totalProducto = document.getElementById('totalProducto');
+        
+            async function cargarProducto() {
+                container.innerHTML = '<p class="empty-msg">Conectando con la base de datos...</p>';
+        
+                try {
+                    const productosBD = await Producto.obtenerTodos();
+        
+                    container.innerHTML = '';
+        
+                    if (!productosBD || productosBD.length === 0) {
+                        container.innerHTML = '<p class="empty-msg">No hay productos en la base de datos.</p>';
+                        totalProducto.textContent = "Total de productos: 0";
+                        return;
+                    }
+        
+                    totalProducto.textContent = `Total de productos: ${productosBD.length}`;
+        
+                    productosBD.forEach(producto => {
+                        const productoDiv = document.createElement('div');
+                        productoDiv.classList.add('producto');
+        
+                        const precioMostrado = (typeof producto.precio === 'number') 
+                            ? producto.precio.toFixed(3) 
+                            : "0.00";
+        
+                        productoDiv.innerHTML = `
+                            <h3>${producto.nombre || 'Sin nombre'}</h3>
+                            <p>${producto.edicion || 'Edición no especificada'}</p>
+                            <span class="precio">$${precioMostrado}</span>
+                        `;
+        
+                        container.appendChild(productoDiv);
+                    });
+                } catch (error) {
+                    console.error("Error en la carga:", error);
+                    container.innerHTML = '<p class="empty-msg">Error al conectar con Supabase.</p>';
+                }
+            }
+        
+            cargarProducto();
+        </script>
+</body>
+</html>
